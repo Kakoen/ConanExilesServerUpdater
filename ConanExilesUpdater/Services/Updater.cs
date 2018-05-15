@@ -181,9 +181,6 @@ namespace ConanExilesUpdater.Services
             if (_twitchClient != null)
             _twitchClient.Disconnect();
 
-            if (_discordClient != null)
-                _discordClient.Disconnect();
-
             if (_quitEvent != null)
                 _quitEvent.Set();
 

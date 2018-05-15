@@ -1,7 +1,8 @@
 ﻿using System;
-using System.Threading.Tasks;
+using System.IO;
+using System.Net;
 using ConanExilesUpdater.Models;
-using Discord;
+using Newtonsoft.Json;
 using Serilog;
 
 namespace ConanExilesUpdater.Services
@@ -11,7 +12,6 @@ namespace ConanExilesUpdater.Services
         #region Properties
 
         private readonly Settings _settings;
-        private DiscordClient _client;
 
         #endregion
 
@@ -20,16 +20,6 @@ namespace ConanExilesUpdater.Services
         public DiscordService(Settings _settings)
         {
             this._settings = _settings;
-            _client = new DiscordClient(x => { x.UsePermissionsCache = false; });
-            _client.Ready += Client_Ready;
-
-            Task.Run(() =>
-            {
-                _client.ExecuteAndWait(async () =>
-                {
-                    await _client.Connect(_settings.Discord.DiscordToken, TokenType.Bot);
-                });
-            });
         }
 
         #endregion
@@ -45,16 +35,33 @@ namespace ConanExilesUpdater.Services
 
         #region Public Methods
 
-        public async void Disconnect()
-        {
-            if (_client.State == ConnectionState.Connected)
-                await _client.Disconnect();
-        }
-
         public async void SendMessage(string message)
         {
-            var channel = _client.GetChannel(_settings.Discord.ChannelId);
-            await channel.SendMessage(message).ConfigureAwait(false);
+            try
+            {
+                HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create("https://discordapp.com/api/channels/" + _settings.Discord.ChannelId + "/messages");
+                request.ContentType = "application/json";
+                request.Method = "POST";
+                request.Headers.Add("Authorization", "Bot " + _settings.Discord.DiscordToken);
+
+                using (var streamWriter = new StreamWriter(request.GetRequestStream()))
+                {
+                    string json = JsonConvert.SerializeObject(new
+                    {
+                        content = message
+                    });
+                    streamWriter.Write(json);
+                }
+
+                var httpResponse = (HttpWebResponse)request.GetResponse();
+                using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+                {
+                    var result = streamReader.ReadToEnd();
+                }
+            } catch(Exception e)
+            {
+                //oh well
+            }
         }
 
         #endregion
