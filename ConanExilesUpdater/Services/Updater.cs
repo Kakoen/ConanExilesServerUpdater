@@ -256,9 +256,10 @@ namespace ConanExilesUpdater.Services
                 RedirectStandardOutput = false,
                 UseShellExecute = false
             };
-            Process.Start(processStartInfo);
+            Process process = Process.Start(processStartInfo);
             if (_general != null)
                 _general.StartServices();
+            process.PriorityClass = ProcessPriorityClass.High;
         }
 
         private bool DetectUpdate()
