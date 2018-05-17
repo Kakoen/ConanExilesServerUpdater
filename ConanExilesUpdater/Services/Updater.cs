@@ -330,12 +330,12 @@ namespace ConanExilesUpdater.Services
                 if (_settings.Update.AnnounceTwitch)
                 {
                     if (_twitchClient != null)
-                        _twitchClient.SendMessage(_messages.Twitch.TwitchUpdateMessage.Replace("@version",$"{steamVersion}").Replace("@announcebefore", $"{_settings.Update.AnnounceMinutesBefore}{(_settings.Update.AnnounceMinutesBefore == 1 ? "Minute" : "Minutes")}"));
+                        _twitchClient.SendMessage(_messages.Twitch.TwitchUpdateMessage.Replace("@version",$"{steamVersion}").Replace("@announcebefore", $"{_settings.Update.AnnounceMinutesBefore}{(_settings.Update.AnnounceMinutesBefore == 1 ? " minute" : " minutes")}"));
                 }
                 if (_settings.Update.AnnounceDiscord)
                 {
                     if (_discordClient != null)
-                        _discordClient.SendMessage(_messages.Discord.DiscordUpdateMessage.Replace("@version", $"{steamVersion}").Replace("@announcebefore", $"{_settings.Update.AnnounceMinutesBefore}{(_settings.Update.AnnounceMinutesBefore == 1 ? "Minute" : "Minutes")}"));
+                        _discordClient.SendMessage(_messages.Discord.DiscordUpdateMessage.Replace("@version", $"{steamVersion}").Replace("@announcebefore", $"{_settings.Update.AnnounceMinutesBefore}{(_settings.Update.AnnounceMinutesBefore == 1 ? " minute" : " minutes")}"));
                 }
                 _settings.Update.InstalledBuild = Convert.ToInt32(steamVersion);
                 Utils.SaveSettings(Program.StartupPath, _settings);
