@@ -239,7 +239,7 @@ namespace ConanExilesUpdater.Services
             var processStartInfo = new ProcessStartInfo
             {
                 FileName = $"{_settings.Update.SteamCmdPath}steamcmd.exe",
-                Arguments = $"+@ShutdownOnFailedCommand +@NoPromptForPassword 1 +nSubscribedAutoDownloadMaxSimultaneous 32 +@cMaxContentServersToRequest 16 +@cMaxInitialDownloadSources 1 +@fMinDataRateToAttemptTwoConnectionsMbps 0.01 +@fDownloadRateImprovementToAddAnotherConnection 0.01 +login anonymous +force_install_dir {_settings.Conan.FolderPath} +app_update 443030 +quit",
+                Arguments = $"+@ShutdownOnFailedCommand +@NoPromptForPassword 1 +nSubscribedAutoDownloadMaxSimultaneous 32 +@cMaxContentServersToRequest 16 +@cMaxInitialDownloadSources 1 +@fMinDataRateToAttemptTwoConnectionsMbps 0.01 +@fDownloadRateImprovementToAddAnotherConnection 0.01 +login anonymous +force_install_dir {_settings.Conan.FolderPath} +app_update 443030 validate +quit",
                 RedirectStandardOutput = false,
                 UseShellExecute = false
             };
