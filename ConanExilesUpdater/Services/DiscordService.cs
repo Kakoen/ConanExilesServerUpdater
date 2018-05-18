@@ -60,7 +60,7 @@ namespace ConanExilesUpdater.Services
                 }
             } catch(Exception e)
             {
-                //oh well
+                Log.Error(e, "Error when sending Discord Message");
             }
         }
 
