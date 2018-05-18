@@ -5,6 +5,7 @@
         public Twitch Twitch { get; set; }
         public Discord Discord { get; set; }
         public Conan Conan { get; set; }
+        public RCON RCON { get; set; }
         public Update Update { get; set; }
         public General General { get; set; }
 
@@ -13,6 +14,7 @@
             Twitch = new Twitch();
             Discord = new Discord();
             Conan = new Conan();
+            RCON = new RCON();
             Update = new Update();
             General = new General();
         }
@@ -29,6 +31,19 @@
     {
         public string DiscordToken { get; set; }
         public ulong ChannelId { get; set; }
+    }
+
+    public class RCON
+    {
+        public string RCONHost { get; set; }
+        public int RCONPort { get; set; }
+        public string RCONPassword { get; set; }
+
+        public RCON()
+        {
+            RCONHost = "localhost";
+            RCONPort = 25575;
+        }
     }
 
     public class Conan
@@ -61,6 +76,7 @@
         public string SteamCmdPath { get; set; }
         public bool AnnounceDiscord { get; set; }
         public bool AnnounceTwitch { get; set; }
+        public bool AnnounceRCON { get; set; }
         public int AnnounceMinutesBefore { get; set; }
         public int UpdateCheckInterval { get; set; }
         public int InstalledBuild { get; set; }
@@ -70,6 +86,7 @@
         {
             AnnounceDiscord = false;
             AnnounceTwitch = false;
+            AnnounceRCON = false;
             UpdateCheckInterval = 5;
             AnnounceMinutesBefore = 5;
             ShouldInstallSteamCmdIfMissing = false;

@@ -23,6 +23,7 @@ namespace ConanExilesUpdater.Services
         private Messages _messages;
         private TwitchService _twitchClient;
         private DiscordService _discordClient;
+        private RCONService _rconClient;
         private GeneralServices _general;
         private bool _runUpdates = true;
         private const double _version = 1.95;
@@ -99,7 +100,10 @@ namespace ConanExilesUpdater.Services
                     _twitchClient = new TwitchService(_settings);
                 if (_settings.Update.AnnounceDiscord)
                     _discordClient = new DiscordService(_settings);
-                _general = new GeneralServices(_settings, _discordClient, _twitchClient, _messages);
+                if (_settings.Update.AnnounceRCON)
+                    _rconClient = new RCONService(_settings);
+
+                _general = new GeneralServices(_settings, _discordClient, _twitchClient, _rconClient, _messages);
                 _general.StartServices();
                 RunUpdateChecks();
                 _quitEvent.WaitOne();
@@ -259,7 +263,17 @@ namespace ConanExilesUpdater.Services
             Process process = Process.Start(processStartInfo);
             if (_general != null)
                 _general.StartServices();
-            process.PriorityClass = ProcessPriorityClass.High;
+
+            try
+            {
+                //Higher priority
+                Thread.Sleep(5000);
+                Process.GetProcesses().Where(c => c.ProcessName.Contains("ConanSandboxServer")).ToList().ForEach(p => p.PriorityClass = ProcessPriorityClass.High);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Failed to higher priority of ConanSandboxServer");
+            }
         }
 
         private bool DetectUpdate()
@@ -337,6 +351,11 @@ namespace ConanExilesUpdater.Services
                 {
                     if (_discordClient != null)
                         _discordClient.SendMessage(_messages.Discord.DiscordUpdateMessage.Replace("@version", $"{steamVersion}").Replace("@announcebefore", $"{_settings.Update.AnnounceMinutesBefore}{(_settings.Update.AnnounceMinutesBefore == 1 ? " minute" : " minutes")}"));
+                }
+                if (_settings.Update.AnnounceRCON)
+                {
+                    if (_rconClient != null)
+                        _rconClient.SendMessage(_messages.RCON.RCONUpdateMessage.Replace("@version", $"{steamVersion}").Replace("@announcebefore", $"{_settings.Update.AnnounceMinutesBefore}{(_settings.Update.AnnounceMinutesBefore == 1 ? " minute" : " minutes")}"));
                 }
                 _settings.Update.InstalledBuild = Convert.ToInt32(steamVersion);
                 Utils.SaveSettings(Program.StartupPath, _settings);

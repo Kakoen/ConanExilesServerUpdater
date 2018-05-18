@@ -4,12 +4,14 @@
     {
         public Discord Discord { get; set; }
         public Twitch Twitch { get; set; }
+        public RCON RCON { get; set; }
         public int AnnounceIntervalInMinutes { get; set; }
 
         public Messages()
         {
             Discord = new Discord();
             Twitch = new Twitch();
+            RCON = new RCON();
             AnnounceIntervalInMinutes = 0;
         }
     }
@@ -43,6 +45,22 @@
             TwitchUpdateMessage = "New Conan Server Version Detected, Build: @version. The server will restart in @announcebefore.";
             TwitchServerUptimeMessage = "The Conan server has been running for @uptime. Restarts are scheduled every @restartinterval. The server will restart in @countdownminutes.";
             TwitchServerNotRunning = "The Conan server was not detected as running. It will start now, and be online within 2-3 Minutes";
+        }
+    }
+
+    public class RCON
+    {
+        public string RCONUpdateMessage { get; set; }
+        public string RCONServerUptimeMessage { get; set; }
+        public string RCONServerRestartingMessage { get; set; }
+        public string RCONServerNotRunning { get; set; }
+
+        public RCON()
+        {
+            RCONServerRestartingMessage = "The Conan server will restart in @countdownminutes. It will show online in a few minutes.";
+            RCONUpdateMessage = "New Conan Server Version Detected, Build: @version. The server will restart in @announcebefore.";
+            RCONServerUptimeMessage = "The Conan server has been running for @uptime. Restarts are scheduled every @restartinterval. The server will restart in @countdownminutes.";
+            RCONServerNotRunning = "The Conan server was not detected as running. It will start now, and be online within 2-3 Minutes";
         }
     }
 }

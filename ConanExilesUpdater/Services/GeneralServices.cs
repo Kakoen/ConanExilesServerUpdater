@@ -19,12 +19,14 @@ namespace ConanExilesUpdater.Services
         private CancellationToken _token;
         private readonly DiscordService _discordClient;
         private readonly TwitchService _twitchService;
+        private readonly RCONService _rconClient;
 
-        public GeneralServices(Settings settings, DiscordService discord, TwitchService twitch, Messages messages)
+        public GeneralServices(Settings settings, DiscordService discord, TwitchService twitch, RCONService rcon, Messages messages)
         {
             _settings = settings;
             _discordClient = discord;
             _twitchService = twitch;
+            _rconClient = rcon;
             _messages = messages;
         }
 
@@ -96,7 +98,7 @@ namespace ConanExilesUpdater.Services
                     {
                         var startTime = process.StartTime;
 
-                        if (_settings.Update.AnnounceTwitch || _settings.Update.AnnounceDiscord)
+                        if (_settings.Update.AnnounceTwitch || _settings.Update.AnnounceDiscord || _settings.Update.AnnounceRCON)
                         {
                             if (_messages.AnnounceIntervalInMinutes != 0)
                             {
@@ -106,6 +108,8 @@ namespace ConanExilesUpdater.Services
                                         _discordClient.SendMessage(_messages.Discord.DiscordServerUptimeMessage.Replace("@countdownminutes", $"{_settings.Update.AnnounceMinutesBefore} {(_settings.Update.AnnounceMinutesBefore == 1 ? "Minute" : "Minutes")}").Replace("@uptime", $"{Math.Round(DateTime.Now.Subtract(process.StartTime).TotalHours, 2)} H {DateTime.Now.Subtract(process.StartTime).Minutes} M.").Replace("@restartinterval", $"{_messages.AnnounceIntervalInMinutes} {(_messages.AnnounceIntervalInMinutes == 1 ? "Minute" : "Minutes")}"));
                                     if (_twitchService != null)
                                         _twitchService.SendMessage(_messages.Twitch.TwitchServerUptimeMessage.Replace("@countdownminutes", $"{_settings.Update.AnnounceMinutesBefore} {(_settings.Update.AnnounceMinutesBefore == 1 ? "Minute" : "Minutes")}").Replace("@uptime", $"{Math.Round(DateTime.Now.Subtract(process.StartTime).TotalHours, 2)} H {DateTime.Now.Subtract(process.StartTime).Minutes} M.").Replace("@restartinterval", $"{_messages.AnnounceIntervalInMinutes} {(_messages.AnnounceIntervalInMinutes == 1 ? "Minute" : "Minutes")}"));
+                                    if (_rconClient != null)
+                                        _rconClient.SendMessage(_messages.RCON.RCONServerUptimeMessage.Replace("@countdownminutes", $"{_settings.Update.AnnounceMinutesBefore} {(_settings.Update.AnnounceMinutesBefore == 1 ? "Minute" : "Minutes")}").Replace("@uptime", $"{Math.Round(DateTime.Now.Subtract(process.StartTime).TotalHours, 2)} H {DateTime.Now.Subtract(process.StartTime).Minutes} M.").Replace("@restartinterval", $"{_messages.AnnounceIntervalInMinutes} {(_messages.AnnounceIntervalInMinutes == 1 ? "Minute" : "Minutes")}"));
 
                                     _nextAnnounce = DateTime.Now.AddMinutes(_messages.AnnounceIntervalInMinutes);
                                 }
@@ -115,12 +119,14 @@ namespace ConanExilesUpdater.Services
                         if (_settings.General.RestartServerAfterHours == 0) continue;
                         if (startTime.AddHours(_settings.General.RestartServerAfterHours) <= DateTime.Now)
                         {
-                            if (_settings.Update.AnnounceTwitch || _settings.Update.AnnounceDiscord)
+                            if (_settings.Update.AnnounceTwitch || _settings.Update.AnnounceDiscord || _settings.Update.AnnounceRCON)
                             {
                                 if (_discordClient != null)
                                     _discordClient.SendMessage(_messages.Discord.DiscordServerRestartingMessage.Replace("@countdownminutes", $"{_settings.Update.AnnounceMinutesBefore} {(_settings.Update.AnnounceMinutesBefore == 1 ? "Minute" : "Minutes")}"));
                                 if (_twitchService != null)
                                     _twitchService.SendMessage(_messages.Twitch.TwitchServerRestartingMessage.Replace("@countdownminutes", $"{_settings.Update.AnnounceMinutesBefore} {(_settings.Update.AnnounceMinutesBefore == 1 ? "Minute" : "Minutes")}"));
+                                if (_rconClient != null)
+                                    _rconClient.SendMessage(_messages.RCON.RCONServerRestartingMessage.Replace("@countdownminutes", $"{_settings.Update.AnnounceMinutesBefore} {(_settings.Update.AnnounceMinutesBefore == 1 ? "Minute" : "Minutes")}"));
                             }
                             if (_settings.Update.AnnounceMinutesBefore > 0)
                             {
@@ -147,7 +153,7 @@ namespace ConanExilesUpdater.Services
                             RedirectStandardOutput = false,
                             UseShellExecute = false
                         };
-                        Process.Start(processStartInfo);
+                        var conanProcess = Process.Start(processStartInfo);
 
                         if (_settings.Update.AnnounceTwitch || _settings.Update.AnnounceDiscord)
                         {
@@ -156,6 +162,16 @@ namespace ConanExilesUpdater.Services
                                 _discordClient.SendMessage(announceMessage);
                             if (_twitchService != null)
                                 _twitchService.SendMessage(announceMessage);
+                        }
+
+                        try
+                        {
+                            //Higher priority
+                            Thread.Sleep(5000);
+                            Process.GetProcesses().Where(c => c.ProcessName.Contains("ConanSandboxServer")).ToList().ForEach(p => p.PriorityClass = ProcessPriorityClass.High);
+                        } catch(Exception e)
+                        {
+                            Log.Error(e, "Failed to higher priority of ConanSandboxServer");
                         }
                     }
                 }
